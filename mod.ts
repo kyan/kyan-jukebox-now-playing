@@ -30,11 +30,11 @@ async function handleRequest(request: Request) {
   try {
     await client.connect(mongoUrl);
 
-    const db = client.database("jukebox");
+    const db = client.database("jukebox-production");
     const settings = db.collection<SettingsSchema>("settings");
-    const slackMessage = await settings.findOne({ key: "slack" });
+    const slackMessage = await settings.findOne({ key: "slack" }, { noCursorTimeout: false });
 
-    return json(slackMessage.value.currentTrack);
+    return json(slackMessage?.value?.currentTrack);
   } catch (error) {
     // If something goes wrong in the above block, let's log the error
     // and return a generic error to the user.
