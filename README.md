@@ -1,6 +1,13 @@
 # Kyan Jukebox Now Playing data
 
-This app provides now playing data for our Office Jukebox. The current format returned can be used to construct a Slack message.
+This app provides now playing data in JSON for our Office Jukebox.
+
+- POST - This will return data that is in the format of a Slack custom message
+- GET - simple JSON
+
+## Running locally
+
+`MONGODB_URL="<path-to-mongo>" deno run --allow-all --no-check --watch mod.ts`
 
 ## Deploy
 
