@@ -20,6 +20,11 @@ async function handleRequest(request: Request) {
     const slackMessage = await settings.findOne({ key: "slack" }, { noCursorTimeout: false });
     const currentTrack = slackMessage?.value?.currentTrack;
 
+    // The driver does not handle re-connecting which is why we
+    // create a new connection every time and then close it. There are
+    // not many users of this application.
+    client.close()
+
     if (request.method == "POST") {
       return new Response(JSON.stringify(currentTrack), {
         headers: {
