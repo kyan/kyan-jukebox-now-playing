@@ -35,10 +35,10 @@ async function handleRequest(request: Request) {
       artist: artist.trim(),
       album: album.trim(),
       image,
-      rating: currentTrack.blocks[4].fields[0].text.replace(/\*/g, ""),
-      "voted_by": currentTrack.blocks[4].fields[1].text.replace(/\*/g, ""),
-      played: currentTrack.blocks[4].fields[2].text.replace(/\*/g, ""),
-      "last_played": currentTrack.blocks[4].fields[3].text.replace(/\*/g, ""),
+      rating: currentTrack.blocks[4].fields[0]?.text?.replace(/\*/g, ""),
+      "voted_by": currentTrack.blocks[4].fields[1]?.text?.replace(/\*/g, ""),
+      played: currentTrack.blocks[4].fields[2]?.text?.replace(/\*/g, ""),
+      "last_played": currentTrack.blocks[4].fields[3]?.text?.replace(/\*/g, ""),
       "added_by": currentTrack.blocks[5].elements[0].text
     };
     return new Response(JSON.stringify(nowPlaying), {
