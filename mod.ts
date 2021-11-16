@@ -1,5 +1,7 @@
 import { listenAndServe } from "https://deno.land/std@0.114.0/http/server.ts";
-import { MongoClient } from "https://deno.land/x/mongo@v0.28.0/mod.ts";
+// import { MongoClient } from "https://deno.land/x/mongo@v0.28.0/mod.ts";
+// Using master branch in github until new release is made
+import { MongoClient } from "https://raw.githubusercontent.com/denodrivers/deno_mongo/main/mod.ts";
 import { SettingsSchema } from "./types.ts";
 
 async function handleRequest(request: Request) {
