@@ -16,7 +16,7 @@ export class NowPlayingClient {
     const db = this.client.database("jukebox-production");
     const settings = db.collection<CurrentTrackSchema>("settings");
 
-    return await settings.findOne({ key: "slack" }, {
+    return await settings.findOne({ key: "json" }, {
       noCursorTimeout: false,
     });
   }
