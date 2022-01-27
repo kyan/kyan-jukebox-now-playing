@@ -12,3 +12,11 @@ This app provides now playing data in JSON for our Office Jukebox.
 ## Deploy
 
 [![Deploy this example](https://deno.com/deno-deploy-button.svg)](https://dash.deno.com/new?url=https://github.com/kyan/kyan-jukebox-now-playing/blob/HEAD/mod.ts&env=MONGODB_URL)
+
+## Test
+
+You can run the tests with `deno test`
+
+## Code formatting
+
+`deno fmt`

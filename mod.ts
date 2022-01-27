@@ -1,54 +1,38 @@
-import { listenAndServe } from "https://deno.land/std@0.114.0/http/server.ts";
-// import { MongoClient } from "https://deno.land/x/mongo@v0.28.0/mod.ts";
-// Using master branch in github until new release is made
-import { MongoClient } from "https://raw.githubusercontent.com/denodrivers/deno_mongo/main/mod.ts";
-import { SettingsSchema } from "./types.ts";
+import { serve } from "https://deno.land/std@0.122.0/http/mod.ts";
+import { Status } from "https://deno.land/std@0.122.0/http/http_status.ts";
+import { MongoClient } from "https://deno.land/x/mongo@v0.29.1/mod.ts";
+import { NowPlayingClient } from "./now_playing_client.ts";
+import FormatTrack from "./track_formatter.ts";
 
 async function handleRequest(request: Request) {
   const mongoUrl = Deno.env.get("MONGODB_URL");
+
   if (!mongoUrl) {
     return new Response(null, {
-      status: 422,
+      status: Status.UnprocessableEntity,
       statusText: "Environment variable `MONGODB_URL` not set.",
     });
   }
-  const client = new MongoClient();
+
+  const nowPlayingClient = new NowPlayingClient({
+    url: mongoUrl,
+    client: MongoClient,
+  });
 
   try {
-    await client.connect(mongoUrl);
-
-    const db = client.database("jukebox-production");
-    const settings = db.collection<SettingsSchema>("settings");
-    const slackMessage = await settings.findOne({ key: "slack" }, { noCursorTimeout: false });
-    const currentTrack = slackMessage?.value?.currentTrack;
+    const data = await nowPlayingClient.fetchJSON();
+    const track = data?.value?.currentTrack;
+    if (!track) throw new Error("There appears to be no track data!");
 
     // The driver does not handle re-connecting which is why we
     // create a new connection every time and then close it. There are
     // not many users of this application.
-    client.close()
+    nowPlayingClient.close();
 
-    if (request.method == "POST") {
-      return new Response(JSON.stringify(currentTrack), {
-        headers: {
-          "content-type": "application/json; charset=UTF-8",
-        },
-      });
-    }
+    const format = request.method == "POST" ? "SLACK" : "JSON";
+    const payload = FormatTrack(track).to(format);
 
-    const [title, artist, album] = currentTrack.blocks[2].text.text.split("\n")
-    const image = currentTrack.blocks[2].accessory.image_url
-    const nowPlaying = {
-      title: title.trim().replace(/\*/g, ""),
-      artist: artist.trim(),
-      album: album.trim(),
-      image,
-      rating: currentTrack.blocks[4].fields[0]?.text?.replace(/\*/g, ""),
-      "voted_by": currentTrack.blocks[4].fields[1]?.text?.replace(/\*/g, ""),
-      played: currentTrack.blocks[4].fields[2]?.text?.replace(/\*/g, ""),
-      "last_played": currentTrack.blocks[4].fields[3]?.text?.replace(/\*/g, ""),
-      "added_by": currentTrack.blocks[5].elements[0].text
-    };
-    return new Response(JSON.stringify(nowPlaying), {
+    return new Response(JSON.stringify(payload), {
       headers: {
         "content-type": "application/json; charset=UTF-8",
       },
@@ -58,11 +42,11 @@ async function handleRequest(request: Request) {
     // and return a generic error to the user.
     console.log(error);
     return new Response(null, {
-      status: 500,
+      status: Status.InternalServerError,
       statusText: "Error fetching the jukebox data. Please try again.",
     });
   }
 }
 
 console.log("Listening on http://localhost:8080");
-await listenAndServe(":8080", handleRequest);
+serve(handleRequest, { port: 8080 });
